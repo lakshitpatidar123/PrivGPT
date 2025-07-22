@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ChatGPT Clone</title>
+  <style>
+    body { font-family: Arial,sans-serif; background: #111; color: #fff; margin: 0; height:100vh; display:flex; flex-direction:column; }
+    #chat { flex:1; padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+    .msg { max-width:80%; padding:10px 15px; border-radius:10px; animation:fadeIn .2s ease; }
+    .user { background:#4caf50; align-self:flex-end; }
+    .bot { background:#202020; align-self:flex-start; }
+    #inputArea { display:flex; padding:10px; background:#181818; }
+    #input { flex:1; padding:10px; font-size:16px; border:none; border-radius:5px; }
+    #send { padding:10px 20px; margin-left:10px; background:#4caf50; color:#fff; border:none; border-radius:5px; cursor:pointer; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  </style>
+</head>
+<body>
+  <div id="chat"></div>
+  <div id="inputArea">
+    <input type="text" id="input" placeholder="Ask me anything..." />
+    <button id="send">Send</button>
+  </div>
+  <script>
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('input');
+    const send = document.getElementById('send');
+    const API_KEY = 'sk-XuV7VrnXnjf5J67Fx4cWESo9rhhgneCrOomCQ8i6phJV6haY';
+    const API_URL = 'https://api.openai.com/v1/chat/completions';
+
+    async function sendMessage(msg) {
+      addMessage(msg, 'user');
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + API_KEY },
+          body: JSON.stringify({ model: 'gpt-3.5-turbo', messages: [{ role: 'user', content: msg }] })
+        });
+        const d = await res.json();
+        const reply = d.choices?.[0]?.message?.content || '⚠️ No answer';
+        addMessage(reply, 'bot');
+      } catch (e) {
+        addMessage('❌ ' + e.message, 'bot');
+        console.error(e);
+      }
+    }
+
+    function addMessage(t, cls) {
+      const m = document.createElement('div');
+      m.className = 'msg ' + cls;
+      m.innerText = t;
+      chat.appendChild(m);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    send.addEventListener('click', () => {
+      const t = input.value.trim();
+      if (!t) return;
+      sendMessage(t);
+      input.value = '';
+    });
+    input.addEventListener('keypress', e => { if (e.key === 'Enter') send.click(); });
+  </script>
+</body>
+</html>
